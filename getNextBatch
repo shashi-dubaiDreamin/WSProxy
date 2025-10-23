@@ -55,8 +55,8 @@ function RetrieveSoapObject(soapObjectname, propertiesName,filter,api) {
         if(response!=null){
             hasMoreData=response.HasMoreRows;
             requestId=response.RequestID;
-            var result=response.Results[i].Properties;
-            records.push(result);
+            var results=response.Results;
+            records.push(results);
         }
     }
 
