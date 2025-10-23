@@ -1,0 +1,30 @@
+<script runat="server">
+
+    var api = new Script.Util.WSProxy();
+    api.setClientId({
+        "ID": Platform.Function.AuthenticatedMemberID(),
+        "UserID": Platform.Function.AuthenticatedEmployeeID()
+    });
+
+    var soapObjectname = "DataExtension";
+    var response = api.describe(soapObjectname);
+    var properties = response.Results[0].Properties; 
+    var propertiesName = [];
+
+    for (var i in properties) {
+        var name = properties[i].Name;
+        var isRetrievable = properties[i].IsRetrievable;
+        if (isRetrievable === true) {
+            propertiesName.push(name);
+        }
+    }
+
+    var filter = {
+                    Property: "IsSendable",        
+                    SimpleOperator: "equals", 
+                    Value: "true"           
+                };
+
+    var response = api.retrieve(soapObjectname, propertiesName,filter);
+
+</script>
