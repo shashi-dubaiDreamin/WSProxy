@@ -1,0 +1,59 @@
+<script runat="server">
+    // Load the core library
+    Platform.Load("core", "1");
+
+    try {
+        // Initialize the WSProxy object
+        var api = new Script.Util.WSProxy();
+        
+        // Set the client ID (used for authentication)
+        api.setClientId({
+            ID: Platform.Function.AuthenticatedMemberID()
+        });
+
+        // Define the fields for the Data Extensions
+        var fields = [
+            { Name: "FirstName", FieldType: "Text", MaxLength: 50 },
+            { Name: "LastName", FieldType: "Text", MaxLength: 80 },
+            { 
+                Name: "SubscriberKey", 
+                FieldType: "Text", 
+                MaxLength: 254, 
+                IsPrimaryKey: true, // Ensures uniqueness
+                IsRequired: true // Mandatory field
+            },
+            { Name: "EmailAddress", FieldType: "EmailAddress", IsRequired: true }
+        ];
+
+        // Create three Data Extension objects with unique CustomerKeys
+        var DE1 = {
+            CustomerKey: String(Platform.Function.GUID()).toUpperCase(),
+            Name: "DE1",
+            Fields: fields
+        };
+        
+        var DE2 = {
+            CustomerKey: String(Platform.Function.GUID()).toUpperCase(),
+            Name: "DE2",
+            Fields: fields
+        };
+        
+        var DE3 = {
+            CustomerKey: String(Platform.Function.GUID()).toUpperCase(),
+            Name: "DE3",
+            Fields: fields
+        };
+
+        // Create the Data Extensions in batch
+        var result = api.createBatch("DataExtension", [DE1, DE2, DE3]);
+        
+        // Output the result
+        Write(Stringify(result));
+        
+    } catch (ex) {
+        // Catch and log any errors
+        Write(ex.message);
+        Write(ex.description);
+        Write(ex.jintException);
+    }
+</script>
