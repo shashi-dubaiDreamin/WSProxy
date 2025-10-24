@@ -1,5 +1,5 @@
 <script runat="server">
-
+    Platform.Load("core", "1");
     var api = new Script.Util.WSProxy();
     api.setClientId({
         "ID": Platform.Function.AuthenticatedMemberID(),
@@ -25,8 +25,12 @@
                     Value: "true"           
                 };
     
-    var batch ={BatchSize : 25};
+    var queryAllAccounts = true;
 
-    var response = api.retrieve(soapObjectname, propertiesName,filter,batch);
-
+    var response = api.retrieve(soapObjectname, propertiesName,filter,queryAllAccounts);
+    var count = 0;
+    if (response && response.Status === "OK" && response.Results) {
+        count = response.Results.length;
+    }
+   Write(count);
 </script>
