@@ -1,67 +1,62 @@
 <script runat="server">
-    Platform.Load("core", "1");
-    try {
-        var api = new Script.Util.WSProxy();
-        api.setClientId({
-            "ID": Platform.Function.AuthenticatedMemberID(),
-            "UserID": Platform.Function.AuthenticatedEmployeeID()
-        });
+Platform.Load("core", "1");
 
-        var soapObjectname = "DataExtension";
-        var response = api.describe(soapObjectname);
-        var properties = response.Results[0].Properties; 
-        var propertiesName = [];
+try {
+    var api = new Script.Util.WSProxy();
+    var soapObjectName = "DataExtension";
 
-        for (var i in properties) {
-            var name = properties[i].Name;
-            var isRetrievable = properties[i].IsRetrievable;
-            if (isRetrievable === true) {
-                propertiesName.push(name);
-            }
-        }
+    // Describe the object to find retrievable properties
+    var desc = api.describe(soapObjectName);
+    var props = desc && desc.Results && desc.Results[0].Properties || [];
+    var retrievableProps = [];
 
-        var filter = {
-                        Property: "IsSendable",        
-                        SimpleOperator: "equals", 
-                        Value: "true"           
-                    };
-        
-        var batch ={BatchSize : 300};
-        var props: { QueryAllAccounts: false};
-        var response = RetrieveSoapObject(soapObjectname, propertiesName,filter,batch,props,api);
-        Write(Stringify(response));
-    } catch (ex) {
-        // If an exception occurs during the execution, catch it and write the error messages to the output.
-        Write(ex.message);
-        Write(ex.description);
-        Write(ex.jintException);
-    }
-
-function RetrieveSoapObject(soapObjectname, propertiesName,filter,batch,props,api) {
- 
-  var records=[];
-  var hasMoreData=true;
-  var requestId=null;
-  var data= null;
-
-  While(hasMoreData){
-        hasMoreData=false;
-        if(requestId){
-            props.ContinueRequest=requestId;
-             // Call the retrieve method of WSProxy to fetch data from the SOAP object.
-            var response = api.retrieve(soapObjectname, propertiesName,filter,batch,props);
-        }
-           
-        if(response){
-            hasMoreData=response.HasMoreRows;
-            requestId=response.RequestID;
-            var results=response.Results;
-            records.push(results);
+    for (var i = 0; i < props.length; i++) {
+        if (props[i].IsRetrievable === true) {
+            retrievableProps.push(props[i].Name);
         }
     }
 
-  // Return the response, which contains the retrieved data from the SOAP object.
-  return records;
+    // Optional filter (null retrieves all)
+    var filter = null;
+
+    // Options
+    var opts= { BatchSize:200};
+    var props={ QueryAllAccounts: true}
+
+    var allResults = [];
+    var hasMoreData = true;
+    var requestId = null;
+    var batchCount = 0;
+
+    // Loop through all batches
+    while (hasMoreData) {
+        var response = RetrieveSoapObject(api, soapObjectName, retrievableProps, filter, opts,props, requestId);
+        batchCount++;
+
+        if (response && response.Results && response.Results.length > 0) {
+            Write("Batch " + batchCount + ": Retrieved " + response.Results.length + " records.<br>");
+        } else {
+            Write("Batch " + batchCount + ": No records returned.<br>");
+        }
+
+        hasMoreData = response && response.HasMoreRows === true;
+        requestId = response && response.RequestID;
+     
+    }
+
+
+} catch (ex) {
+     Write(ex.message);
+     Write(ex.description);
+     Write(ex.jintException);
 }
 
+// Helper function for retrieval with pagination
+function RetrieveSoapObject(api, soapObjectName, retrievableProps, filter, opts, props, requestId) {
+    var response;
+    if (requestId) 
+       props.ContinueRequest = requestId;
+        response = api.retrieve(soapObjectName, retrievableProps, filter, opts, props);
+    return response;
+}
 </script>
