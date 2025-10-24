@@ -1,0 +1,64 @@
+<script runat="server">
+Platform.Load("core", "1");
+
+try {
+    var api = new Script.Util.WSProxy();
+    var soapObjectName = "DataExtension";
+
+    // Describe DataExtension to get retrievable properties
+    var desc = api.describe(soapObjectName);
+    var props = desc && desc.Results && desc.Results[0].Properties || [];
+    var retrievableProps = [];
+
+    for (var i = 0; i < props.length; i++) {
+        if (props[i].IsRetrievable === true) {
+            retrievableProps.push(props[i].Name);
+        }
+    }
+
+    // Filter: Only sendable Data Extensions
+    var filter = null
+    var batch={BatchSize:25};
+    var queryAllAccounts = { QueryAllAccounts: true};
+
+    var allResults = [];
+    var hasMoreData = true;
+    var requestId = null;
+    var batchCount = 0;
+
+    // Loop through all batches
+    while (hasMoreData) {
+        var response = RetrieveSoapObject(api, soapObjectName, retrievableProps, filter,batch,queryAllAccounts, requestId);
+        batchCount++;
+
+        if (response && response.Results && response.Results.length > 0) {
+           
+            allResults = allResults.concat(response.Results);
+
+            // Print per-batch count
+            Write("Batch " + batchCount + ": Retrieved " + response.Results.length + " records.");
+        } else {
+            Write("Batch " + batchCount + ":No records returned.");
+        }
+
+        hasMoreData = response && response.HasMoreRows;
+        requestId = response && response.RequestID;
+    }
+
+} catch (ex) {
+    Write("Error: " + Stringify(ex));
+}
+
+
+function RetrieveSoapObject(api, soapObjectName, retrievableProps, filter,batch,queryAllAccounts, requestId) {
+    var response;
+    if (requestId == null) {
+        // First call
+        response = api.retrieve(soapObjectName, retrievableProps, filter,batch,queryAllAccounts);
+    } else {
+        // Next batch
+        response = api.getNextBatch(soapObjectName, requestId);
+    }
+    return response;
+}
+</script>
