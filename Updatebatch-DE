@@ -1,0 +1,47 @@
+<script runat="server">
+    // Load the core library
+    Platform.Load("core", "1");
+
+    try {
+        // Initialize the WSProxy object
+        var api = new Script.Util.WSProxy();
+        
+        // Set the client ID (used for authentication)
+        api.setClientId({
+            ID: Platform.Function.AuthenticatedMemberID()
+        });
+
+        // Define the new field to be added
+        var fields = [
+            { Name: "NewField", FieldType: "Text", MaxLength: 50 }
+        ];
+
+        // Create update objects for each Data Extension
+        var DE1 = {
+            Name: "DE1",
+            Fields: fields
+        };
+        
+        var DE2 = {
+            Name: "DE2",
+            Fields: fields
+        };
+        
+        var DE3 = {
+            Name: "DE3",
+            Fields: fields
+        };
+
+        // Update the Data Extensions in batch
+        var result = api.updateBatch("DataExtension", [DE1, DE2, DE3]);
+        
+        // Output the result
+        Write(Stringify(result));
+        
+    } catch (ex) {
+        // Catch and log any errors
+        Write(ex.message);
+        Write(ex.description);
+        Write(ex.jintException);
+    }
+</script>
