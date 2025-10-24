@@ -1,5 +1,5 @@
 <script runat="server">
-
+    Platform.Load("core", "1");
     var api = new Script.Util.WSProxy();
     api.setClientId({
         "ID": Platform.Function.AuthenticatedMemberID(),
@@ -38,5 +38,10 @@
             };
 
     var response = api.retrieve(soapObjectname, propertiesName,filter);
+    var count = 0;
+    if (response && response.Status === "OK" && response.Results) {
+        count = response.Results.length;
+    }
+   Write(count);
 
 </script>
