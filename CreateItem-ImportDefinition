@@ -1,0 +1,108 @@
+
+<script runat="server">
+    // Load necessary libraries
+    Platform.Load("core", "1");
+
+    try {
+        // Initialize WSProxy API
+        var api = new Script.Util.WSProxy();
+
+        // Define variables for Import Definition configuration
+        var name = "Demo1"; // Name of the Import Definition
+        var deCustomerKey = "SubscribersMaster"; // Data Extension CustomerKey
+        var fileSpec = "APIImport%%Year%%%%Month%%%%Day%%.psv"; // File specification
+        var fileType = "Other"; //"Tab,CSV" Type of file
+        var createResults = CreateImportDefinition(api, name, deCustomerKey, fileSpec, fileType);
+
+        Write(Stringify(createResults));
+        
+    } catch (ex) {
+        // Catch and log any errors that occur
+        Write(Stringify(ex));
+    }
+
+    // Function to create an Import Definition
+    function CreateImportDefinition(api, name, deCustomerKey, fileSpec, fileType) {
+        try {
+            // Create an Import Definition object
+            var config = {
+                Name: name,
+                CustomerKey: name, // CustomerKey is usually unique identifier, here set to the same as Name
+                Description: name, // Description set to the same as Name
+                AllowErrors: true,
+                DestinationObject: {
+                    CustomerKey: deCustomerKey,
+                    IDSpecified: true
+                },
+                Notification: {
+                    ResponseType: "email",
+                    ResponseAddress: "b2.shashi@gmail.com" // Email address for notification
+                },
+                RetrieveFileTransferLocation: {
+                    CustomerKey: "ExactTarget Enhanced FTP" // File transfer location
+                },
+                // Update type for import 
+                UpdateType: "AddAndUpdate", //Overwrite,AddAndDoNotUpdate,AddAndUpdate
+                UpdateTypeSpecified: true,
+                // Field mapping type
+                FieldMappingType: "InferFromColumnHeadings", //MapByOrdinal,ManualMap
+                FieldMappingTypeSpecified: true,
+                FieldMaps: CreateFieldMap(), // Field mappings
+                FileSpec: fileSpec, // File specification
+                FileType: fileType,
+                FileTypeSpecified: true,
+                StandardQuotedStrings: true,
+                Delimiter: "|",//","
+                HeaderLines: 1
+            };
+
+            // Create the Import Definition
+            var result = api.createItem("ImportDefinition", config);
+            return result;
+        } catch (ex) {
+            throw ex;
+        }
+    }
+
+    // Function to create field mappings
+    function CreateFieldMap() {
+        return [
+            {
+                DestinationName: "SubscriberKey", // Destination field name
+                Item: "1" // Source column index
+            },
+            {
+                DestinationName: "Email", // Destination field name
+                Item: "2" // Source column index
+            }
+        ];
+    }
+
+     // Function to run the Import Definition activity
+     function RunQueryImportActivity(definitionName) {
+        // Initialize WSProxy API
+        var api = new Script.Util.WSProxy();
+        
+        // Retrieve ObjectID of the Import Definition for the given name
+        var request = api.retrieve("ImportDefinition", ["ObjectID"], {
+            Property: "Name",
+            SimpleOperator: "equals",
+            Value: definitionName
+        });
+        
+        // Extract ObjectID from the response
+        var objectId = request.Results[0].ObjectID;
+        
+        // Properties for running the Import Definition activity
+        var props = {
+            "ObjectID": objectId 
+        };
+        
+        // Run the Import Definition activity
+        var result = api.performItem("ImportDefinition", props, "Start", {});
+        return result;
+    }
+</script>
+
+
+                            
