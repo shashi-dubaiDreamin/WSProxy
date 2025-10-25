@@ -5,93 +5,28 @@ try {
     // Initialize the WSProxy object
     var api = new Script.Util.WSProxy();
     var folderName = "WSProxy"; // Folder name
-    var folderId=RetrieveFolderID(folderName);
+    var folderId=RetrieveFolderID(folderName,"dataextension");
         
     // Set the client ID (used for authentication)
     api.setClientId({
             ID: Platform.Function.AuthenticatedMemberID()
      });
 
-    var deArray=[];
-    var jobDataView={
-        CustomerKey: "Job_DataView",
-        Name: "Job_DataView",
-        CategoryID: folderId,
-        Fields: JobDataViewProperties()
-    };
-    deArray.push(jobDataView);
-
-    var sentDataView={
-        CustomerKey: "Sent_DataView",
-        Name: "Sent_DataView",
-        CategoryID: folderId,
-        Fields: SentDataViewProperties()
-    };
-    deArray.push(sentDataView);
-
-    var openDataView={
-        CustomerKey: "Open_DataView",
-        Name: "Open_DataView",
-        CategoryID: folderId,
-        Fields: OpenDataViewProperties()
-    };
-    deArray.push(openDataView);
-
-    var clickDataView={
-        CustomerKey: "Click_DataView",
-        Name: "Click_DataView",
-        CategoryID: folderId,
-        Fields: ClickDataViewProperties()
-    };
-    deArray.push(clickDataView);
-
-    var bounceDataView={
-        CustomerKey: "Bounce_DataView",
-        Name: "Bounce_DataView",
-        CategoryID: folderId,
-        Fields: BounceDataViewProperties()
-    };
-    deArray.push(bounceDataView);
-
-    var complaintDataView={
-        CustomerKey: "Complaint_DataView",
-        Name: "Complaint_DataView",
-        CategoryID: folderId,
-        Fields: ComplaintDataViewProperties()
-    };
-    deArray.push(complaintDataView);
-
-    var unsubscribeDataView={
-        CustomerKey: "Unsubscribe_DataView",
-        Name: "Unsubscribe_DataView",
-        CategoryID: folderId,
-        Fields: UnsubscribeDataViewProperties()
-    };
-    deArray.push(unsubscribeDataView);
-
-    var subscribersDataView={
-        CustomerKey: "Subscribers_DataView",
-        Name: "Subscribers_DataView",
-        CategoryID: folderId,
-        Fields: SubscribersDataViewProperties()
-    };
-    deArray.push(subscribersDataView);
-
-    var listSubscribersDataView={
-        CustomerKey: "ListSubscribers_DataView",
-        Name: "ListSubscribers_DataView",
-        CategoryID: folderId,
-        Fields: ListSubscribersDataViewProperties()
-    };
-    deArray.push(listSubscribersDataView);
     
-    // Before pushing retreive the DE and if not found push to deArray.
-    
+    var deArray=DataViewsConstructor();
+
     // Create the Data Extensions in batch
     var result = api.createBatch("DataExtension", deArray);
 
-    if(result.Status==='OK' && result.RequestID)
-        Write(result.RequestID);
+
+
+    if(result.Status==='OK' && result.RequestID){
+        var queries = DataViewsQueriesConstructor();
+        var queryResult= api.createBatch("QueryDefinition", queries);
+        if(queryResult.Status==='OK' && queryResult.RequestID){
+            Write(queryResult.RequestID);      
+        }
+    }
 
 } catch (ex) {
     // Output any errors
@@ -277,7 +212,7 @@ function OpenDataViewProperties() {
     }
 
     // Function to retrieve the ID of a folder by name
-    function RetrieveFolderID(folderName) {
+    function RetrieveFolderID(folderName,contentType) {
         var folderID = null;
         
         // Define filter to retrieve folder by name
@@ -290,7 +225,7 @@ function OpenDataViewProperties() {
         var rightOperand = {
             Property: "ContentType",
             SimpleOperator: "equals",
-            Value: "dataextension"
+            Value: contentType
         };
 
         var complexFilter = {
@@ -306,17 +241,17 @@ function OpenDataViewProperties() {
         if (folders && folders.length > 0) {
             folderID = folders[0].ID;
         }else{
-        folderID=CreateAfolder(folderName);
+        folderID=CreateAfolder(folderName,contentType);
         }
         return folderID;
     }
 
-    function CreateAfolder(folderName) {
+    function CreateAfolder(folderName,contentType) {
         var newFolder = {
             "Name": folderName,
             "CustomerKey": folderName,
             "Description": folderName,
-            "ContentType": "dataextension",
+            "ContentType": contentType,
             "IsActive": "true",
             "IsEditable": "true",
             "AllowChildren": "false",
@@ -324,6 +259,207 @@ function OpenDataViewProperties() {
         };
 
         var status = Folder.Add(newFolder);
-        return RetrieveFolderID(folderName);
+        return RetrieveFolderID(folderName, contentType);
+    }
+
+    function DataViewsConstructor(){
+        var deArray=[];
+        var jobDataView={
+            CustomerKey: "Job_DataView",
+            Name: "Job_DataView",
+            CategoryID: folderId,
+            Fields: JobDataViewProperties()
+        };
+        deArray.push(jobDataView);
+
+        var sentDataView={
+            CustomerKey: "Sent_DataView",
+            Name: "Sent_DataView",
+            CategoryID: folderId,
+            Fields: SentDataViewProperties()
+        };
+        deArray.push(sentDataView);
+
+        var openDataView={
+            CustomerKey: "Open_DataView",
+            Name: "Open_DataView",
+            CategoryID: folderId,
+            Fields: OpenDataViewProperties()
+        };
+        deArray.push(openDataView);
+
+        var clickDataView={
+            CustomerKey: "Click_DataView",
+            Name: "Click_DataView",
+            CategoryID: folderId,
+            Fields: ClickDataViewProperties()
+        };
+        deArray.push(clickDataView);
+
+        var bounceDataView={
+            CustomerKey: "Bounce_DataView",
+            Name: "Bounce_DataView",
+            CategoryID: folderId,
+            Fields: BounceDataViewProperties()
+        };
+        deArray.push(bounceDataView);
+
+        var complaintDataView={
+            CustomerKey: "Complaint_DataView",
+            Name: "Complaint_DataView",
+            CategoryID: folderId,
+            Fields: ComplaintDataViewProperties()
+        };
+        deArray.push(complaintDataView);
+
+        var unsubscribeDataView={
+            CustomerKey: "Unsubscribe_DataView",
+            Name: "Unsubscribe_DataView",
+            CategoryID: folderId,
+            Fields: UnsubscribeDataViewProperties()
+        };
+        deArray.push(unsubscribeDataView);
+
+        var subscribersDataView={
+            CustomerKey: "Subscribers_DataView",
+            Name: "Subscribers_DataView",
+            CategoryID: folderId,
+            Fields: SubscribersDataViewProperties()
+        };
+        deArray.push(subscribersDataView);
+
+        var listSubscribersDataView={
+            CustomerKey: "ListSubscribers_DataView",
+            Name: "ListSubscribers_DataView",
+            CategoryID: folderId,
+            Fields: ListSubscribersDataViewProperties()
+        };
+        deArray.push(listSubscribersDataView);
+        return deArray;
+    }
+    
+    function JobDataViewQuery()
+    {
+        var queryDef = {
+            Name : "Job Data View Query Definition",
+            CustomerKey : "jobdataviewQueryDefinition",
+            TargetUpdateType : "Overwrite",
+            TargetType : "DE",
+            DataExtensionTarget : {
+                Name : "Job_DataView",
+                CustomerKey : "Job_DataView"
+            },
+            QueryText : "Select * from [_Job]"
+        };
+        return queryDef;
+    }
+
+    function SentDataViewQuery()
+    {
+        var queryDef = {
+                Name : "Sent Data View Query Definition",
+                CustomerKey : "sentdataviewQueryDefinition",
+                TargetUpdateType : "Overwrite",
+                TargetType : "DE",
+                DataExtensionTarget : {
+                    Name : "Sent_DataView",
+                    CustomerKey : "Sent_DataView"
+                },
+                QueryText : "Select * from [_Sent]"
+        };
+        return queryDef;
+    }
+
+    function OpenDataViewQuery()
+    {
+        var queryDef = {
+            Name : "Open Data View Query Definition",
+            CustomerKey : "opendataviewQueryDefinition",
+            TargetUpdateType : "Overwrite",
+            TargetType : "DE",
+            DataExtensionTarget : {
+                Name : "Open_DataView",
+                CustomerKey : "Open_DataView"
+            },
+            QueryText : "Select * from [_Open]"
+        };
+        return queryDef;
+    }
+
+    function ClickDataViewQuery()
+    {
+        var queryDef = {
+            Name : "Click Data View Query Definition",
+            CustomerKey : "clickdataviewQueryDefinition",
+            TargetUpdateType : "Overwrite",
+            TargetType : "DE",
+            DataExtensionTarget : {
+                Name : "Click_DataView",
+                CustomerKey : "Click_DataView"
+            },
+            QueryText : "Select * from [_Click]"
+        };
+        return queryDef;
+    }
+
+    function BounceDataViewQuery()
+    {
+        var queryDef = {
+            Name : "Bounce Data View Query Definition",
+            CustomerKey : "bouncedataviewQueryDefinition",
+            TargetUpdateType : "Overwrite",
+            TargetType : "DE",
+            DataExtensionTarget : {
+                Name : "Bounce_DataView",
+                CustomerKey : "Bounce_DataView"
+            },
+            QueryText : "Select * from [_Bounce]"
+        };
+        return queryDef;
+    }
+
+    function ComplaintDataViewQuery()
+    {
+        var queryDef = {
+            Name : "Complaint Data View Query Definition",
+            CustomerKey : "complaintdataviewQueryDefinition",
+            TargetUpdateType : "Overwrite",
+            TargetType : "DE",
+            DataExtensionTarget : {
+                Name : "Complaint_DataView",
+                CustomerKey : "Complaint_DataView"
+            },
+            QueryText : "Select * from [_Complaint]"
+        };
+        return queryDef;
+    }
+
+    function UnsubscribeDataViewQuery()
+    {
+        var queryDef = {
+            Name : "Unsubscribe Data View Query Definition",
+            CustomerKey : "unsubscribedataviewQueryDefinition",
+            TargetUpdateType : "Overwrite",
+            TargetType : "DE",
+            DataExtensionTarget : {
+                Name : "Unsubscribe_DataView",
+                CustomerKey : "Unsubscribe_DataView"
+            },
+            QueryText : "Select * from [_Unsubscribe]"
+        };
+        return queryDef;
+    }
+
+
+    function DataViewsQueriesConstructor(){
+        var queryDefinitions=[];
+        queryDefinitions.push(JobDataViewQuery());
+        queryDefinitions.push(SentDataViewQuery());
+        queryDefinitions.push(OpenDataViewQuery());
+        queryDefinitions.push(ClickDataViewQuery());
+        queryDefinitions.push(BounceDataViewQuery());
+        queryDefinitions.push(ComplaintDataViewQuery());
+        queryDefinitions.push(UnsubscribeDataViewQuery());
+        return queryDefinitions;
     }
 </script>
