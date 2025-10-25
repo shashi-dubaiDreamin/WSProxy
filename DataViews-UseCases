@@ -1,0 +1,329 @@
+<script runat="server">
+Platform.Load("core", "1");
+
+try {
+    // Initialize the WSProxy object
+    var api = new Script.Util.WSProxy();
+    var folderName = "WSProxy"; // Folder name
+    var folderId=RetrieveFolderID(folderName);
+        
+    // Set the client ID (used for authentication)
+    api.setClientId({
+            ID: Platform.Function.AuthenticatedMemberID()
+     });
+
+    var deArray=[];
+    var jobDataView={
+        CustomerKey: "Job_DataView",
+        Name: "Job_DataView",
+        CategoryID: folderId,
+        Fields: JobDataViewProperties()
+    };
+    deArray.push(jobDataView);
+
+    var sentDataView={
+        CustomerKey: "Sent_DataView",
+        Name: "Sent_DataView",
+        CategoryID: folderId,
+        Fields: SentDataViewProperties()
+    };
+    deArray.push(sentDataView);
+
+    var openDataView={
+        CustomerKey: "Open_DataView",
+        Name: "Open_DataView",
+        CategoryID: folderId,
+        Fields: OpenDataViewProperties()
+    };
+    deArray.push(openDataView);
+
+    var clickDataView={
+        CustomerKey: "Click_DataView",
+        Name: "Click_DataView",
+        CategoryID: folderId,
+        Fields: ClickDataViewProperties()
+    };
+    deArray.push(clickDataView);
+
+    var bounceDataView={
+        CustomerKey: "Bounce_DataView",
+        Name: "Bounce_DataView",
+        CategoryID: folderId,
+        Fields: BounceDataViewProperties()
+    };
+    deArray.push(bounceDataView);
+
+    var complaintDataView={
+        CustomerKey: "Complaint_DataView",
+        Name: "Complaint_DataView",
+        CategoryID: folderId,
+        Fields: ComplaintDataViewProperties()
+    };
+    deArray.push(complaintDataView);
+
+    var unsubscribeDataView={
+        CustomerKey: "Unsubscribe_DataView",
+        Name: "Unsubscribe_DataView",
+        CategoryID: folderId,
+        Fields: UnsubscribeDataViewProperties()
+    };
+    deArray.push(unsubscribeDataView);
+
+    var subscribersDataView={
+        CustomerKey: "Subscribers_DataView",
+        Name: "Subscribers_DataView",
+        CategoryID: folderId,
+        Fields: SubscribersDataViewProperties()
+    };
+    deArray.push(subscribersDataView);
+
+    var listSubscribersDataView={
+        CustomerKey: "ListSubscribers_DataView",
+        Name: "ListSubscribers_DataView",
+        CategoryID: folderId,
+        Fields: ListSubscribersDataViewProperties()
+    };
+    deArray.push(listSubscribersDataView);
+    
+    // Before pushing retreive the DE and if not found push to deArray.
+    
+    // Create the Data Extensions in batch
+    var result = api.createBatch("DataExtension", deArray);
+
+    if(result.Status==='OK' && result.RequestID)
+        Write(result.RequestID);
+
+} catch (ex) {
+    // Output any errors
+    Write("Error message: " + ex.message + "<br>");
+    Write("Description: " + ex.description + "<br>");
+    Write("Jint Exception: " + ex.jintException + "<br>");
+}
+
+function JobDataViewProperties() {
+        var fields = [
+            { "CustomerKey": "AccountID", "Name": "AccountID", "FieldType": "Number" },
+            { "CustomerKey": "AccountUserID", "Name": "AccountUserID", "FieldType": "Number" },
+            { "CustomerKey": "JobID", "Name": "JobID", "FieldType": "Number", "IsPrimaryKey": true, "IsRequired": true },
+            { "CustomerKey": "EmailID", "Name": "EmailID", "FieldType": "Number" },
+            { "CustomerKey": "FromName", "Name": "FromName", "FieldType": "Text", "MaxLength": 130 },
+            { "CustomerKey": "FromEmail", "Name": "FromEmail", "FieldType": "EmailAddress" },
+            { "CustomerKey": "SchedTime", "Name": "SchedTime", "FieldType": "Date" },
+            { "CustomerKey": "PickupTime", "Name": "PickupTime", "FieldType": "Date" },
+            { "CustomerKey": "DeliveredTime", "Name": "DeliveredTime", "FieldType": "Date" },
+            { "CustomerKey": "TriggererSendDefinitionObjectID", "Name": "TriggererSendDefinitionObjectID", "FieldType": "Text", "MaxLength": 36 },
+            { "CustomerKey": "TriggeredSendCustomerKey", "Name": "TriggeredSendCustomerKey", "FieldType": "Text", "MaxLength": 36 },
+            { "CustomerKey": "JobStatus", "Name": "JobStatus", "FieldType": "Text", "MaxLength": 50 }
+        ];
+        return fields;
+    }
+
+function SentDataViewProperties() {
+        var fields = [
+                { "CustomerKey": "AccountID", "Name": "AccountID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey": "OYBAccountID", "Name": "OYBAccountID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey": "JobID", "Name": "JobID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey": "ListID", "Name": "ListID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey": "BatchID", "Name": "BatchID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey": "SubscriberID", "Name": "SubscriberID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey": "SubscriberKey", "Name": "SubscriberKey", "FieldType": "Text", "MaxLength": 254, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey": "EventDate", "Name": "EventDate", "FieldType": "Date", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey": "Domain", "Name": "Domain", "FieldType": "Text", "MaxLength": 128, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey": "TriggererSendDefinitionObjectID", "Name": "TriggererSendDefinitionObjectID", "FieldType": "Text", "MaxLength": 36, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey": "TriggeredSendCustomerKey", "Name": "TriggeredSendCustomerKey", "FieldType": "Text", "MaxLength": 36, "IsPrimaryKey": false, "IsRequired": false }
+            ];
+        return fields;
+    }
+
+function OpenDataViewProperties() {
+        var fields = [
+                // Define fields for Dataview Open Data Extension
+                { "CustomerKey":"AccountID", "Name": "AccountID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"OYBAccountID", "Name": "OYBAccountID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"JobID", "Name": "JobID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"ListID", "Name": "ListID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"BatchID", "Name": "BatchID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SubscriberID", "Name": "SubscriberID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SubscriberKey", "Name": "SubscriberKey", "FieldType": "Text", "MaxLength": 254, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"EventDate", "Name": "EventDate", "FieldType": "Date", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"Domain", "Name": "Domain", "FieldType": "Text", "MaxLength": 128, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"TriggererSendDefinitionObjectID", "Name": "TriggererSendDefinitionObjectID", "FieldType": "Text", "MaxLength": 36, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"TriggeredSendCustomerKey", "Name": "TriggeredSendCustomerKey", "FieldType": "Text", "MaxLength": 36, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"IsUnique", "Name": "IsUnique", "FieldType": "Boolean", "IsPrimaryKey": false, "IsRequired": false }
+            ];
+        return fields;
+    }
+
+    function ClickDataViewProperties() {
+        var fields = [
+                // Define fields for Dataview Click Data Extension
+                { "CustomerKey":"AccountID", "Name": "AccountID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"OYBAccountID", "Name": "OYBAccountID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"JobID", "Name": "JobID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"ListID", "Name": "ListID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"BatchID", "Name": "BatchID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SubscriberID", "Name": "SubscriberID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SubscriberKey", "Name": "SubscriberKey", "FieldType": "Text", "MaxLength": 254, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"EventDate", "Name": "EventDate", "FieldType": "Date", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"Domain", "Name": "Domain", "FieldType": "Text", "MaxLength": 128, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"TriggererSendDefinitionObjectID", "Name": "TriggererSendDefinitionObjectID", "FieldType": "Text", "MaxLength": 36, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"TriggeredSendCustomerKey", "Name": "TriggeredSendCustomerKey", "FieldType": "Text", "MaxLength": 36, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"IsUnique", "Name": "IsUnique", "FieldType": "Boolean", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"URL", "Name": "URL", "FieldType": "Text", "MaxLength": 900, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"LinkName", "Name": "LinkName", "FieldType": "Text", "MaxLength": 1024, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"LinkContent", "Name": "LinkContent", "FieldType": "Text", "IsPrimaryKey": false, "IsRequired": false }
+            ];
+        return fields;
+    }
+
+    function BounceDataViewProperties() {
+        var fields = [
+                // Define fields for Dataview Bounce Data Extension
+                { "CustomerKey":"AccountID", "Name": "AccountID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"OYBAccountID", "Name": "OYBAccountID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"JobID", "Name": "JobID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"ListID", "Name": "ListID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"BatchID", "Name": "BatchID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SubscriberID", "Name": "SubscriberID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SubscriberKey", "Name": "SubscriberKey", "FieldType": "Text", "MaxLength": 254, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"EventDate", "Name": "EventDate", "FieldType": "Date", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"Domain", "Name": "Domain", "FieldType": "Text", "MaxLength": 128, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"TriggererSendDefinitionObjectID", "Name": "TriggererSendDefinitionObjectID", "FieldType": "Text", "MaxLength": 36, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"TriggeredSendCustomerKey", "Name": "TriggeredSendCustomerKey", "FieldType": "Text", "MaxLength": 36, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"IsUnique", "Name": "IsUnique", "FieldType": "Boolean", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"BounceCategoryID", "Name": "BounceCategoryID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"BounceCategory", "Name": "BounceCategory", "FieldType": "Text", "MaxLength": 50, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"BounceSubcategoryID", "Name": "BounceSubcategoryID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"BounceSubcategory", "Name": "BounceSubcategory", "FieldType": "Text", "MaxLength": 50, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"BounceTypeID", "Name": "BounceTypeID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"BounceType", "Name": "BounceType", "FieldType": "Text", "MaxLength": 50, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SMTPBounceReason", "Name": "SMTPBounceReason", "FieldType": "Text", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SMTPMessage", "Name": "SMTPMessage", "FieldType": "Text", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SMTPCode", "Name": "SMTPCode", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"IsFalseBounce", "Name": "IsFalseBounce", "FieldType": "Boolean", "IsPrimaryKey": false, "IsRequired": false }
+            ];
+        return fields;
+    }
+
+    function ComplaintDataViewProperties() {
+        var fields = [
+                // Define fields for Dataview Complaint Data Extension
+                { "CustomerKey":"AccountID", "Name": "AccountID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"OYBAccountID", "Name": "OYBAccountID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"JobID", "Name": "JobID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"ListID", "Name": "ListID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"BatchID", "Name": "BatchID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SubscriberID", "Name": "SubscriberID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SubscriberKey", "Name": "SubscriberKey", "FieldType": "Text", "MaxLength": 254, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"EventDate", "Name": "EventDate", "FieldType": "Date", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"Domain", "Name": "Domain", "FieldType": "Text", "MaxLength": 128, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"IsUnique", "Name": "IsUnique", "FieldType": "Boolean", "IsPrimaryKey": false, "IsRequired": false }
+            ];
+        return fields;
+    }
+
+    function UnsubscribeDataViewProperties() {
+        var fields = [
+                // Define fields for Dataview Unsubscribe Data Extension
+                { "CustomerKey":"AccountID", "Name": "AccountID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"OYBAccountID", "Name": "OYBAccountID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"JobID", "Name": "JobID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"ListID", "Name": "ListID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"BatchID", "Name": "BatchID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SubscriberID", "Name": "SubscriberID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SubscriberKey", "Name": "SubscriberKey", "FieldType": "Text", "MaxLength": 254, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"EventDate", "Name": "EventDate", "FieldType": "Date", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"Domain", "Name": "Domain", "FieldType": "Text", "MaxLength": 128, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"IsUnique", "Name": "IsUnique", "FieldType": "Boolean", "IsPrimaryKey": false, "IsRequired": false }
+            ];
+        return fields;
+    }
+
+    function SubscribersDataViewProperties() {
+        var fields = [
+                // Define fields for Dataview Subscribers Data Extension
+                { "CustomerKey":"SubscriberID", "Name": "SubscriberID", "FieldType": "Number", "IsPrimaryKey": true, "IsRequired": true },
+                { "CustomerKey":"SubscriberKey", "Name": "SubscriberKey", "FieldType": "Text", "MaxLength": 254, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"DateUndeliverable", "Name": "DateUndeliverable", "FieldType": "Date", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"DateJoined", "Name": "DateJoined", "FieldType": "Date", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"DateUnsubscribed", "Name": "DateUnsubscribed", "FieldType": "Date", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"Domain", "Name": "Domain", "FieldType": "Text", "MaxLength": 254, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"EmailAddress", "Name": "EmailAddress", "FieldType": "EmailAddress", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"BounceCount", "Name": "BounceCount", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SubscriberType", "Name": "SubscriberType", "FieldType": "Text", "MaxLength": 100, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"Status", "Name": "Status", "FieldType": "Text", "MaxLength": 12, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"Locale", "Name": "Locale", "FieldType": "Locale", "IsPrimaryKey": false, "IsRequired": false }
+            ];
+        return fields;
+    }
+
+    function ListSubscribersDataViewProperties() {
+        var fields = [
+                // Define fields for Dataview List Subscribers Data Extension
+                { "CustomerKey":"SubscriberID", "Name": "SubscriberID", "FieldType": "Number", "IsPrimaryKey": true, "IsRequired": true },
+                { "CustomerKey":"SubscriberKey", "Name": "SubscriberKey", "FieldType": "Text", "MaxLength": 254, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"AddedBy", "Name": "AddedBy", "FieldType": "Text", "MaxLength": 254, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"AddMethod", "Name": "AddMethod", "FieldType": "Text", "MaxLength": 50, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"CreatedDate", "Name": "CreatedDate", "FieldType": "Date", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"DateUnsubscribed", "Name": "DateUnsubscribed", "FieldType": "Date", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"EmailAddress", "Name": "EmailAddress", "FieldType": "EmailAddress", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"ListID", "Name": "ListID", "FieldType": "Number", "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"ListName", "Name": "ListName", "FieldType": "Text", "MaxLength": 100, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"ListType", "Name": "ListType", "FieldType": "Text", "MaxLength": 50, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"Status", "Name": "Status", "FieldType": "Text", "MaxLength": 50, "IsPrimaryKey": false, "IsRequired": false },
+                { "CustomerKey":"SubscriberType", "Name": "SubscriberType", "FieldType": "Text", "MaxLength": 100, "IsPrimaryKey": false, "IsRequired": false }
+            ];
+        return fields;
+    }
+
+    // Function to retrieve the ID of a folder by name
+    function RetrieveFolderID(folderName) {
+        var folderID = null;
+        
+        // Define filter to retrieve folder by name
+        var leftOperand = {
+            Property: "Name",
+            SimpleOperator: "equals",
+            Value: folderName
+        };
+
+        var rightOperand = {
+            Property: "ContentType",
+            SimpleOperator: "equals",
+            Value: "dataextension"
+        };
+
+        var complexFilter = {
+            LeftOperand: leftOperand,
+            LogicalOperator: "AND",
+            RightOperand: rightOperand
+        };
+       
+
+        // Retrieve folder based on filter
+        var folders = Folder.Retrieve(complexFilter);
+        // If folder is found, set folderID
+        if (folders && folders.length > 0) {
+            folderID = folders[0].ID;
+        }else{
+        folderID=CreateAfolder(folderName);
+        }
+        return folderID;
+    }
+
+    function CreateAfolder(folderName) {
+        var newFolder = {
+            "Name": folderName,
+            "CustomerKey": folderName,
+            "Description": folderName,
+            "ContentType": "dataextension",
+            "IsActive": "true",
+            "IsEditable": "true",
+            "AllowChildren": "false",
+            "ParentFolderID": 0
+        };
+
+        var status = Folder.Add(newFolder);
+        return RetrieveFolderID(folderName);
+    }
+</script>
