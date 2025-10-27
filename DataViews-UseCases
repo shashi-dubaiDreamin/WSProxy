@@ -355,7 +355,7 @@ function OpenDataViewProperties() {
     function SentDataViewQuery()
     {
         var queryDef = {
-                Name : "Sent Data View Query Definition",
+                Name : "sentdataviewQueryDefinition",
                 CustomerKey : "sentdataviewQueryDefinition",
                 TargetUpdateType : "Overwrite",
                 TargetType : "DE",
@@ -371,7 +371,7 @@ function OpenDataViewProperties() {
     function OpenDataViewQuery()
     {
         var queryDef = {
-            Name : "Open Data View Query Definition",
+            Name : "opendataviewQueryDefinition",
             CustomerKey : "opendataviewQueryDefinition",
             TargetUpdateType : "Overwrite",
             TargetType : "DE",
@@ -387,7 +387,7 @@ function OpenDataViewProperties() {
     function ClickDataViewQuery()
     {
         var queryDef = {
-            Name : "Click Data View Query Definition",
+            Name : "clickdataviewQueryDefinition",
             CustomerKey : "clickdataviewQueryDefinition",
             TargetUpdateType : "Overwrite",
             TargetType : "DE",
@@ -403,7 +403,7 @@ function OpenDataViewProperties() {
     function BounceDataViewQuery()
     {
         var queryDef = {
-            Name : "Bounce Data View Query Definition",
+            Name : "bouncedataviewQueryDefinition",
             CustomerKey : "bouncedataviewQueryDefinition",
             TargetUpdateType : "Overwrite",
             TargetType : "DE",
@@ -419,7 +419,7 @@ function OpenDataViewProperties() {
     function ComplaintDataViewQuery()
     {
         var queryDef = {
-            Name : "Complaint Data View Query Definition",
+            Name : "complaintdataviewQueryDefinition",
             CustomerKey : "complaintdataviewQueryDefinition",
             TargetUpdateType : "Overwrite",
             TargetType : "DE",
@@ -435,7 +435,7 @@ function OpenDataViewProperties() {
     function UnsubscribeDataViewQuery()
     {
         var queryDef = {
-            Name : "Unsubscribe Data View Query Definition",
+            Name : "UnsubscribeDataViewQuery",
             CustomerKey : "unsubscribedataviewQueryDefinition",
             TargetUpdateType : "Overwrite",
             TargetType : "DE",
