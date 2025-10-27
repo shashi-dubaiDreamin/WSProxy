@@ -1,0 +1,201 @@
+<script runat="server">
+Platform.Load("core", "1");
+
+try {
+    var api = new Script.Util.WSProxy();
+    api.setClientId({
+        "ID": Platform.Function.AuthenticatedMemberID(),
+        "UserID": Platform.Function.AuthenticatedEmployeeID()
+    });
+
+    var dataExtensionName = "Open_DataViews"; // Data Extension name
+    var folderName = "WSProxy"; // Folder name
+
+    // Retrieve or create the Data Extension and get its ObjectID
+    var objectId = RetrieveDataExtension(api, dataExtensionName, folderName);
+
+    var soapObjectName = "OpenEvent";
+
+    // Describe the object to find retrievable properties
+    var desc = api.describe(soapObjectName);
+    var props = desc && desc.Results && desc.Results[0].Properties || [];
+    var retrievableProps = [];
+
+    for (var i = 0; i < props.length; i++) {
+        if (props[i].IsRetrievable === true) {
+            retrievableProps.push(props[i].Name);
+        }
+    }
+
+    // Optional filter (null retrieves all)
+    var filter = null;
+
+    // Options
+    var opts = { BatchSize: 50 };
+    var reqProps = { QueryAllAccounts: true };
+
+    var allResults = [];
+    var hasMoreData = true;
+    var requestId = null;
+    var batchCount = 0;
+
+    // Loop through all batches
+    while (hasMoreData) {
+        var response = RetrieveSoapObject(api, soapObjectName, retrievableProps, filter, opts, reqProps, requestId);
+        batchCount++;
+
+        if (response && response.Results && response.Results.length > 0) {
+            var fields = RetrieveFields();
+
+            for (var i = 0; i < response.Results.length; i++) {
+                var rec = response.Results[i];
+
+                var deRow = [
+                    { Name: "ClientID", Value: rec.Client.ID },
+                    { Name: "SendID", Value: rec.SendID },
+                    { Name: "ListID", Value: rec.PartnerProperties[0].Value },
+                    { Name: "BatchID", Value: rec.BatchID },
+                    { Name: "SubscriberID", Value: rec.PartnerProperties[1].Value },
+                    { Name: "SubscriberKey", Value: rec.SubscriberKey },
+                    { Name: "EventDate", Value: rec.EventDate },
+                    { Name: "EventType", Value: rec.EventType },
+                    { Name: "TriggeredSendExternalKey", Value: rec.TriggeredSendDefinitionObjectID }
+                ];
+
+                var record = {
+                    CustomerKey: dataExtensionName,
+                    Properties: deRow
+                };
+
+                var options = {
+                    SaveOptions: [{ 'PropertyName': '*', SaveAction: 'UpdateAdd' }]
+                };
+
+                var result = api.createItem('DataExtensionObject', { CustomerKey: dataExtensionName,Properties: deRow});
+
+                if(result.Status==='OK' && result.RequestID)
+                Write(result.RequestID);
+            }
+        } else {
+            Write("No records returned.");
+        }
+
+        hasMoreData = response && response.HasMoreRows === true;
+        requestId = response && response.RequestID;
+    }
+
+} catch (ex) {
+    // Output any errors
+    Write("Error message: " + ex.message + "<br>");
+    Write("Description: " + ex.description + "<br>");
+    Write("Jint Exception: " + ex.jintException + "<br>");
+}
+
+// Function to retrieve the ObjectID of a Data Extension
+function RetrieveDataExtension(api, dataExtensionName, folderName) {
+    var req = api.retrieve("DataExtension", ["ObjectID"], {
+        Property: "Name",
+        SimpleOperator: "equals",
+        Value: dataExtensionName
+    });
+
+    if (req && req.Results && req.Results.length > 0) {
+        return req.Results[0].ObjectID;
+    } else {
+        createDataExtension(api, dataExtensionName, folderName);
+        return RetrieveDataExtension(api, dataExtensionName, folderName);
+    }
+}
+
+// Function to create a Data Extension
+function createDataExtension(api, dataExtensionName, folderName) {
+    var folderID =RetrieveFolderID(folderName); // Default folder ID fallback if retrieval fails
+
+    var config = {
+        "CustomerKey": dataExtensionName,
+        "Name": dataExtensionName,
+        "CategoryID": folderID,
+        "Fields": RetrieveFields()
+    };
+
+    return api.createItem("DataExtension", config);
+}
+
+// Return fields definition
+function RetrieveFields() {
+    return [
+        { "CustomerKey": "ClientID", "Name": "ClientID", "FieldType": "Number" },
+        { "CustomerKey": "SendID", "Name": "SendID", "FieldType": "Number" },
+        { "CustomerKey": "ListID", "Name": "ListID", "FieldType": "Number" },
+        { "CustomerKey": "BatchID", "Name": "BatchID", "FieldType": "Number" },
+        { "CustomerKey": "SubscriberID", "Name": "SubscriberID", "FieldType": "Number" },
+        { "CustomerKey": "SubscriberKey", "Name": "SubscriberKey", "FieldType": "Text", "MaxLength": 254 },
+        { "CustomerKey": "EmailAddress", "Name": "EmailAddress", "FieldType": "Text", "MaxLength": 500 },
+        { "CustomerKey": "EventDate", "Name": "EventDate", "FieldType": "Date" },
+        { "CustomerKey": "EventType", "Name": "EventType", "FieldType": "Text", "MaxLength": 128 },
+        { "CustomerKey": "TriggeredSendExternalKey", "Name": "TriggeredSendExternalKey", "FieldType": "Text", "MaxLength": 36 },
+        { "CustomerKey": "Reason", "Name": "Reason", "FieldType": "Text", "MaxLength": 100 }
+    ];
+}
+
+// Helper function for retrieval with pagination
+function RetrieveSoapObject(api, soapObjectName, retrievableProps, filter, opts, props, requestId) {
+    if (requestId) {
+        props.ContinueRequest = requestId;
+    }
+    var response = api.retrieve(soapObjectName, retrievableProps, filter, opts, props);
+    return response;
+}
+
+// Function to retrieve the ID of a folder by name
+    function RetrieveFolderID(folderName) {
+        var folderID = null;
+        
+        // Define filter to retrieve folder by name
+        var leftOperand = {
+            Property: "Name",
+            SimpleOperator: "equals",
+            Value: folderName
+        };
+
+        var rightOperand = {
+            Property: "ContentType",
+            SimpleOperator: "equals",
+            Value: "dataextension"
+        };
+
+        var complexFilter = {
+            LeftOperand: leftOperand,
+            LogicalOperator: "AND",
+            RightOperand: rightOperand
+        };
+       
+
+        // Retrieve folder based on filter
+        var folders = Folder.Retrieve(complexFilter);
+        // If folder is found, set folderID
+        if (folders && folders.length > 0) {
+            folderID = folders[0].ID;
+        }else{
+        folderID=CreateAfolder(folderName);
+        }
+        return folderID;
+    }
+
+    function CreateAfolder(folderName) {
+        var newFolder = {
+            "Name": folderName,
+            "CustomerKey": folderName,
+            "Description": folderName,
+            "ContentType": "dataextension",
+            "IsActive": "true",
+            "IsEditable": "true",
+            "AllowChildren": "false",
+            "ParentFolderID": 0
+        };
+
+        var status = Folder.Add(newFolder);
+        return RetrieveFolderID(folderName);
+    }
+
+</script>
