@@ -23,11 +23,7 @@ try {
     if(result.Status==='OK' && result.RequestID){
         var queries = DataViewsQueriesConstructor();
         var queryResult= api.createBatch("QueryDefinition", queries);
-        if(queryResult.Status==='OK' && queryResult.RequestID){
-            var objectIds=RetrieveQueryDefinition(api,queries);
-            var result = api.performBatch("QueryDefinition", objectIds, "Start", {});
-            Write (result.RequestID);     
-        }
+        Write (result.RequestID); 
     }
 
 } catch (ex) {
@@ -475,10 +471,7 @@ function OpenDataViewProperties() {
                 Value: queryDefinitions[i].Name
             });
             var objectId = request.Results[0].ObjectID;
-            var props = {
-                            "ObjectID": objectId 
-                        }
-            objectIDs.push(props);
+            objectIDs.push(objectId);
         }
         return objectIDs;
     }
