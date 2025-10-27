@@ -23,7 +23,13 @@ try {
     if(result.Status==='OK' && result.RequestID){
         var queries = DataViewsQueriesConstructor();
         var queryResult= api.createBatch("QueryDefinition", queries);
-        Write (result.RequestID); 
+
+        if(queryResult.Status==='OK' && queryResult.RequestID){
+            var qd=RunQueries(api);
+            if(qd.Status==='OK' && qd.RequestID)
+            Write (qd.RequestID); 
+        }
+        
     }
 
 } catch (ex) {
@@ -339,7 +345,7 @@ function OpenDataViewProperties() {
     function JobDataViewQuery()
     {
         var queryDef = {
-            Name : "Job Data View Query Definition",
+            Name : "jobdataviewQueryDefinition",
             CustomerKey : "jobdataviewQueryDefinition",
             TargetUpdateType : "Overwrite",
             TargetType : "DE",
@@ -461,18 +467,22 @@ function OpenDataViewProperties() {
         return queryDefinitions;
     }
 
-    function RetrieveQueryDefinition(api,queryDefinitions){
-        var objectIDs=[];
-        for (var i = 0; i < queryDefinitions.length; i++) {
-            var request = api.retrieve("QueryDefinition", ["ObjectID"], 
+    function RunQueries(api){
+        var props=[];
+        var request = api.retrieve("QueryDefinition", ["ObjectID"], 
             {
                 Property: "Name",
-                SimpleOperator: "equals",
-                Value: queryDefinitions[i].Name
+                SimpleOperator: "IN",
+                Value: ["sentdataviewQueryDefinition","jobdataviewQueryDefinition"]
             });
+
+        for (var i = 0; i < request.Results.length; i++) {
             var objectId = request.Results[0].ObjectID;
-            objectIDs.push(objectId);
+            var prop ={ "ObjectID": objectId };
+            props.push(prop);
         }
-        return objectIDs;
+
+        var result = api.performBatch("QueryDefinition", props, "Start", {});
+        return result;
     }
 </script>
