@@ -2,6 +2,10 @@
 Platform.Load("core", "1");
 
 try {
+
+    var startTime = Now();
+    var maxMilliseconds = 1500000; // 25 minutes
+
     var api = new Script.Util.WSProxy();
     api.setClientId({
         "ID": Platform.Function.AuthenticatedMemberID(),
@@ -41,6 +45,10 @@ try {
 
     // Loop through all batches
     while (hasMoreData) {
+         var diff = (Now() - startTime);
+          if (diff >= maxMilliseconds) {
+            break;
+          }
         var response = RetrieveSoapObject(api, soapObjectName, retrievableProps, filter, opts, reqProps, requestId);
         batchCount++;
 
