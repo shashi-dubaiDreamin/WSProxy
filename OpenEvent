@@ -8,6 +8,9 @@ try {
         "UserID": Platform.Function.AuthenticatedEmployeeID()
     });
 
+    var startTime = Now();
+    var maxMilliseconds = 1500000; // 25 minutes
+
     var dataExtensionName = "Open_DataViews"; // Data Extension name
     var folderName = "WSProxy"; // Folder name
 
@@ -41,6 +44,10 @@ try {
 
     // Loop through all batches
     while (hasMoreData) {
+        var diff = (Now() - startTime);
+          if (diff >= maxMilliseconds) {
+            break;
+          }
         var response = RetrieveSoapObject(api, soapObjectName, retrievableProps, filter, opts, reqProps, requestId);
         batchCount++;
 
