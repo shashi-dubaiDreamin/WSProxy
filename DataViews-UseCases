@@ -4,8 +4,6 @@ Platform.Load("core", "1");
 try {
     // Initialize the WSProxy object
     var api = new Script.Util.WSProxy();
-    var folderName = "WSProxy"; // Folder name
-    var folderId=RetrieveFolderID(folderName,"dataextension");
         
     // Set the client ID (used for authentication)
     api.setClientId({
@@ -25,9 +23,8 @@ try {
         var queryResult= api.createBatch("QueryDefinition", queries);
 
         if(queryResult.Status==='OK' && queryResult.RequestID){
-            var qd=RunQueries(api);
-            if(qd.Status==='OK' && qd.RequestID)
-            Write (qd.RequestID); 
+            var qd=RunQueries(api,queries);
+            Write (queryResult.Status); 
         }
         
     }
@@ -215,63 +212,12 @@ function OpenDataViewProperties() {
         return fields;
     }
 
-    // Function to retrieve the ID of a folder by name
-    function RetrieveFolderID(folderName,contentType) {
-        var folderID = null;
-        
-        // Define filter to retrieve folder by name
-        var leftOperand = {
-            Property: "Name",
-            SimpleOperator: "equals",
-            Value: folderName
-        };
-
-        var rightOperand = {
-            Property: "ContentType",
-            SimpleOperator: "equals",
-            Value: contentType
-        };
-
-        var complexFilter = {
-            LeftOperand: leftOperand,
-            LogicalOperator: "AND",
-            RightOperand: rightOperand
-        };
-       
-
-        // Retrieve folder based on filter
-        var folders = Folder.Retrieve(complexFilter);
-        // If folder is found, set folderID
-        if (folders && folders.length > 0) {
-            folderID = folders[0].ID;
-        }else{
-        folderID=CreateAfolder(folderName,contentType);
-        }
-        return folderID;
-    }
-
-    function CreateAfolder(folderName,contentType) {
-        var newFolder = {
-            "Name": folderName,
-            "CustomerKey": folderName,
-            "Description": folderName,
-            "ContentType": contentType,
-            "IsActive": "true",
-            "IsEditable": "true",
-            "AllowChildren": "false",
-            "ParentFolderID": 0
-        };
-
-        var status = Folder.Add(newFolder);
-        return RetrieveFolderID(folderName, contentType);
-    }
 
     function DataViewsConstructor(){
         var deArray=[];
         var jobDataView={
             CustomerKey: "Job_DataView",
             Name: "Job_DataView",
-            CategoryID: folderId,
             Fields: JobDataViewProperties()
         };
         deArray.push(jobDataView);
@@ -279,7 +225,6 @@ function OpenDataViewProperties() {
         var sentDataView={
             CustomerKey: "Sent_DataView",
             Name: "Sent_DataView",
-            CategoryID: folderId,
             Fields: SentDataViewProperties()
         };
         deArray.push(sentDataView);
@@ -287,7 +232,6 @@ function OpenDataViewProperties() {
         var openDataView={
             CustomerKey: "Open_DataView",
             Name: "Open_DataView",
-            CategoryID: folderId,
             Fields: OpenDataViewProperties()
         };
         deArray.push(openDataView);
@@ -295,7 +239,6 @@ function OpenDataViewProperties() {
         var clickDataView={
             CustomerKey: "Click_DataView",
             Name: "Click_DataView",
-            CategoryID: folderId,
             Fields: ClickDataViewProperties()
         };
         deArray.push(clickDataView);
@@ -303,7 +246,6 @@ function OpenDataViewProperties() {
         var bounceDataView={
             CustomerKey: "Bounce_DataView",
             Name: "Bounce_DataView",
-            CategoryID: folderId,
             Fields: BounceDataViewProperties()
         };
         deArray.push(bounceDataView);
@@ -311,7 +253,6 @@ function OpenDataViewProperties() {
         var complaintDataView={
             CustomerKey: "Complaint_DataView",
             Name: "Complaint_DataView",
-            CategoryID: folderId,
             Fields: ComplaintDataViewProperties()
         };
         deArray.push(complaintDataView);
@@ -319,7 +260,6 @@ function OpenDataViewProperties() {
         var unsubscribeDataView={
             CustomerKey: "Unsubscribe_DataView",
             Name: "Unsubscribe_DataView",
-            CategoryID: folderId,
             Fields: UnsubscribeDataViewProperties()
         };
         deArray.push(unsubscribeDataView);
@@ -327,7 +267,6 @@ function OpenDataViewProperties() {
         var subscribersDataView={
             CustomerKey: "Subscribers_DataView",
             Name: "Subscribers_DataView",
-            CategoryID: folderId,
             Fields: SubscribersDataViewProperties()
         };
         deArray.push(subscribersDataView);
@@ -335,7 +274,6 @@ function OpenDataViewProperties() {
         var listSubscribersDataView={
             CustomerKey: "ListSubscribers_DataView",
             Name: "ListSubscribers_DataView",
-            CategoryID: folderId,
             Fields: ListSubscribersDataViewProperties()
         };
         deArray.push(listSubscribersDataView);
@@ -467,22 +405,20 @@ function OpenDataViewProperties() {
         return queryDefinitions;
     }
 
-    function RunQueries(api){
+    function RunQueries(api,queries){
         var props=[];
-        var request = api.retrieve("QueryDefinition", ["ObjectID"], 
-            {
-                Property: "Name",
-                SimpleOperator: "IN",
-                Value: ["sentdataviewQueryDefinition","jobdataviewQueryDefinition"]
-            });
 
-        for (var i = 0; i < request.Results.length; i++) {
+        for (var i = 0; i < queries.length; i++) {
+            var request = api.retrieve("QueryDefinition", ["ObjectID"], 
+            {
+                Property: "CustomerKey",
+                SimpleOperator: "equals",
+                Value: queries[i].CustomerKey
+            });
             var objectId = request.Results[0].ObjectID;
             var prop ={ "ObjectID": objectId };
-            props.push(prop);
+            var result = api.performItem("QueryDefinition", prop, "Start", {});
         }
-
-        var result = api.performBatch("QueryDefinition", props, "Start", {});
         return result;
     }
 </script>
