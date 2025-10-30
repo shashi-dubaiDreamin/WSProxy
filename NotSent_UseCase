@@ -2,18 +2,13 @@
 Platform.Load("core", "1");
 
 try {
+    var api = new Script.Util.WSProxy();
 
     var startTime = Now();
     var maxMilliseconds = 1500000; // 25 minutes
 
-    var api = new Script.Util.WSProxy();
-    api.setClientId({
-        "ID": Platform.Function.AuthenticatedMemberID(),
-        "UserID": Platform.Function.AuthenticatedEmployeeID()
-    });
-
     var dataExtensionName = "NotSent_DataViews"; // Data Extension name
-    var folderName = "WSProxy"; // Folder name
+    var folderName = "WSProxy_v1"; // Folder name
 
     // Retrieve or create the Data Extension and get its ObjectID
     var objectId = RetrieveDataExtension(api, dataExtensionName, folderName);
@@ -45,7 +40,7 @@ try {
 
     // Loop through all batches
     while (hasMoreData) {
-         var diff = (Now() - startTime);
+        var diff = (Now() - startTime);
           if (diff >= maxMilliseconds) {
             break;
           }
@@ -79,10 +74,8 @@ try {
                     SaveOptions: [{ 'PropertyName': '*', SaveAction: 'UpdateAdd' }]
                 };
 
-                var result = api.createItem('DataExtensionObject', { CustomerKey: dataExtensionName,Properties: deRow});
-
-                if(result.Status==='OK' && result.RequestID)
-                Write(result.RequestID);
+                allResults.push(record);
+                
             }
         } else {
             Write("No records returned.");
@@ -91,6 +84,12 @@ try {
         hasMoreData = response && response.HasMoreRows === true;
         requestId = response && response.RequestID;
     }
+    
+    if(allResults.length > 0)
+    var batchResult = api.createBatch('DataExtensionObject', allResults);
+
+    if(batchResult.Status==='OK' && batchResult.RequestID)
+    Write(batchResult.RequestID);
 
 } catch (ex) {
     // Output any errors
@@ -117,7 +116,7 @@ function RetrieveDataExtension(api, dataExtensionName, folderName) {
 
 // Function to create a Data Extension
 function createDataExtension(api, dataExtensionName, folderName) {
-    var folderID =RetrieveFolderID(folderName); // Default folder ID fallback if retrieval fails
+    var folderID =RetrieveFolderID(api,folderName); // Default folder ID fallback if retrieval fails
 
     var config = {
         "CustomerKey": dataExtensionName,
@@ -156,7 +155,7 @@ function RetrieveSoapObject(api, soapObjectName, retrievableProps, filter, opts,
 }
 
 // Function to retrieve the ID of a folder by name
-    function RetrieveFolderID(folderName) {
+    function RetrieveFolderID(api,folderName) {
         var folderID = null;
         
         // Define filter to retrieve folder by name
@@ -180,30 +179,33 @@ function RetrieveSoapObject(api, soapObjectName, retrievableProps, filter, opts,
        
 
         // Retrieve folder based on filter
-        var folders = Folder.Retrieve(complexFilter);
+        var folders = api.retrieve("DataFolder", ["ID"],complexFilter);
         // If folder is found, set folderID
-        if (folders && folders.length > 0) {
-            folderID = folders[0].ID;
+        if (folders && folders.Results && folders.Results[0].ID) {
+            folderID = folders.Results[0].ID;
         }else{
-        folderID=CreateAfolder(folderName);
+        folderID=CreateAfolder(api,folderName);
         }
         return folderID;
     }
 
-    function CreateAfolder(folderName) {
+    function CreateAfolder(api,folderName) {
+        var parentID = RetrieveFolderID(api,"Data Extensions") || 0;
         var newFolder = {
             "Name": folderName,
             "CustomerKey": folderName,
             "Description": folderName,
             "ContentType": "dataextension",
-            "IsActive": "true",
-            "IsEditable": "true",
-            "AllowChildren": "false",
-            "ParentFolderID": 0
+            "IsActive": true,
+            "IsEditable": true,
+            "AllowChildren": true,
+             "ParentFolder": { ID: parentID, IDSpecified: true}
         };
 
-        var status = Folder.Add(newFolder);
-        return RetrieveFolderID(folderName);
+        var status = api.createItem("DataFolder", newFolder); 
+        if(status)
+        return RetrieveFolderID(api,folderName);
+        else return null;
     }
 
 </script>
