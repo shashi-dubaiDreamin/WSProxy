@@ -1,0 +1,39 @@
+<script runat="server">
+    Platform.Load("core", "1");
+    try {
+        var api = new Script.Util.WSProxy();
+        api.setClientId({
+            ID: Platform.Function.AuthenticatedMemberID(),
+            UserID: Platform.Function.AuthenticatedEmployeeID()
+        });
+        var account = {
+            AccountType: "BUSINESS_UNIT",
+            ParentID: Platform.Function.AuthenticatedMemberID(),
+            Name: "Dubai Dreamin",
+            Email: "shashi@conx.digital",
+            FromName: "Shashi Prasda",
+            BusinessName: "Dubai Dreamin",
+            Address: "123 Main St.",
+            City: "Indianapolis",
+            State: "IN",
+            Zip: "46202",
+            IsActive: true,
+            IsTestAccount: false,
+            InheritAddress: true
+        };
+        // SaveOptions -> UpdateAdd
+        var opts = {
+            SaveOptions: [
+                {
+                    PropertyName: "*",
+                    SaveAction: "UpdateAdd"
+                }
+            ]
+        };
+        var response = api.createItem("Account", account, opts);
+
+        Write("Result: " + Stringify(response));
+    } catch (ex) {
+        Write("Error: " + ex.message);
+    }
+</script>
