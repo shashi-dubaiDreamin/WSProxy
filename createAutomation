@@ -1,0 +1,51 @@
+<script runat="server">
+Platform.Load("core", "1");
+
+try {
+    var api = new Script.Util.WSProxy();
+    api.setClientId({
+            ID: Platform.Function.AuthenticatedMemberID(),
+            UserID: Platform.Function.AuthenticatedEmployeeID()
+        });
+
+    // Define the Automation
+    var automation = {
+        Client: { ID: Platform.Function.AuthenticatedMemberID()}, // Business Unit MID
+        Name: "Dubai Dreamin",
+        CustomerKey: "dubai",
+        Description: "dubai",
+        AutomationType: "scheduled",
+        AutomationTasks: [
+            {
+                Name: "Task 1",
+                Sequence:1,
+                AutomationTaskType:"QueryDefinition",
+                Activities: [
+                    {
+                        ObjectID: "55f4b087-31d2-46e2-8596-bcbc44177ddb", // QueryDefinition ObjectID
+                        Name: "Query 1"
+                    }
+                ]
+            }
+        ]
+    };
+
+    // Optional SaveOptions
+    var opts = {
+        SaveOptions: [{
+            PropertyName: "*",
+            SaveAction: "UpdateAdd"
+        }]
+    };
+
+    // Create the Automation
+    var result = api.createItem("Automation", automation, opts);
+    Write("<pre>" + Stringify(result) + "</pre>");
+
+} catch (ex) {
+   // Output any errors
+    Write("Error message: " + ex.message + "<br>");
+    Write("Description: " + ex.description + "<br>");
+    Write("Jint Exception: " + ex.jintException + "<br>");
+}
+</script>
