@@ -1,0 +1,47 @@
+<script runat="server">
+    Platform.Load("core", "1");
+
+    try {
+        var api = new Script.Util.WSProxy();
+        var objectIds = [];
+        var templates = api.retrieve("DataExtensionTemplate", ["ObjectID", "Name"]);
+        var DEs = constructDataExtension(templates);
+        // Create the Data Extension
+        var result = api.createBatch("DataExtension", DEs);
+        Write(Stringify(result));
+    } catch (ex) {
+        // Output any errors
+        Write("Error message: " + ex.message + "<br>");
+        Write("Description: " + ex.description + "<br>");
+        Write("Jint Exception: " + ex.jintException + "<br>");
+    }
+
+    function constructDataExtension(templates) {
+        var DEs = [];
+
+        for (var i = 0; i < templates.Results.length; i++) {
+            var dataExtension = {
+                Name: templates.Results[i].Name,
+                CustomerKey: templates.Results[i].Name,
+                Template: { ObjectID: templates.Results[i].ObjectID },
+                Fields: [
+                    {
+                        CustomerKey: "Namet_Key",
+                        Name: "Name",
+                        FieldType: "Text",
+                        IsRequired: false
+                    },
+                    {
+                        CustomerKey: "HTMLContent_Key",
+                        Name: "HTMLContent",
+                        FieldType: "Text",
+                        MaxLength: 4000,
+                        IsRequired: false
+                    }
+                ]
+            };
+            DEs.push(dataExtension);
+        }
+        return DEs;
+    }
+</script>
