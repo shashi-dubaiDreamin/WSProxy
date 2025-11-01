@@ -1,0 +1,130 @@
+
+<script runat="server">
+  Platform.Load("core", "1");
+try {
+  // Set the name of the SOAP object to "Automation".
+  var soapObject = "Automation";
+
+  // Call the function 'DescribeSoapObject' to retrieve the metadata information for the SOAP object.
+  var describeResponse = DescribeSoapObject(soapObject);
+
+  // Extract the properties array from the describeResponse.
+  var properties = describeResponse.Results[0].Properties;
+
+  // Call the function 'FetchRetrieveableProperties' to get an array of retrieveable property names.
+  var cols = FetchRetrieveableProperties(properties);
+
+  // Apply a filter for the SOAP object, where the "CustomerKey" property equals "Dataview_Bounce".
+  var filter = ApplyFilter("Name", "equals", "DubaiDreamin");
+
+  // Call the function 'RetrieveSoapObject' to retrieve data from the SOAP object using the specified filter and columns.
+  var response = RetrieveSoapObject(soapObject, cols, filter);
+
+  var result=performItemSoapObject(soapObject,response)
+
+  // Convert the response object to a string representation and write it to the output.
+  Write(Stringify(result));
+
+}
+catch (ex) {
+  // If an exception occurs during the execution, catch it and write the error messages to the output.
+  Write(ex.message + '\n');
+  Write(ex.description + '\n');
+  Write(ex.jintException + '\n');
+}
+
+
+// Function to describe a SOAP object using WSProxy.
+// Parameters:
+// - soapObjectname: The name of the SOAP object to describe.
+
+function DescribeSoapObject(soapObjectname) {
+  // Create a new instance of WSProxy to interact with the SOAP API.
+  var api = new Script.Util.WSProxy();
+
+  // Call the describe method of WSProxy to fetch the metadata information for the SOAP object.
+  var response = api.describe(soapObjectname);
+
+  // Return the response, which contains the metadata information for the SOAP object.
+  return response;
+}
+
+  
+// Function to fetch an array of retrieveable property names from SOAP metadata.
+// Parameters:
+// - soapMetaData: An array of objects containing metadata information for SOAP properties.
+
+function FetchRetrieveableProperties(soapMetaData) {
+  // Create an empty array to store the names of retrieveable properties.
+  var propertiesName = [];
+
+  // Iterate through each object in the soapMetaData array.
+  for (var i in soapMetaData) {
+    // Extract the 'Name' property from the current object and store it in the propertiesName array.
+    var name = soapMetaData[i].Name;
+    var isRetrievable=soapMetaData[i].IsRetrievable
+    if(isRetrievable===true)
+       propertiesName.push(name);
+  }
+
+  // Return the array containing the names of retrieveable properties.
+  return propertiesName;
+}
+
+
+// Function to create a filter object for data retrieval or processing.
+// Parameters:
+// - prop: The property name to filter on.
+// - operator: The operator used for filtering (e.g., equals, greater than, less than, etc.).
+// - value: The value to compare the property against.
+
+function ApplyFilter(prop, operator, value) {
+  // Create and return a filter object with the specified properties.
+  return {
+    Property: prop,         // The property name on which the filter is applied.
+    SimpleOperator: operator, // The operator used for the filter (e.g., 'equals', 'greaterThan', etc.).
+    Value: value            // The value to compare the property against.
+  };
+}
+
+
+// Function to retrieve data from a SOAP object using WSProxy.
+// Parameters:
+// - soapObjectname: The name of the SOAP object from which data will be retrieved.
+// - cols: An array of column names to retrieve from the SOAP object.
+// - filter: A filter to apply when querying the SOAP object (optional).
+
+function RetrieveSoapObject(soapObjectname, cols, filter) {
+  // Create a new instance of WSProxy to interact with the SOAP object.
+  var api = new Script.Util.WSProxy();
+
+  // Call the retrieve method of WSProxy to fetch data from the SOAP object.
+  var response = api.retrieve(soapObjectname, cols, filter);
+
+  // Return the response, which contains the retrieved data from the SOAP object.
+  return response;
+}
+
+// Function to perform operation on a SOAP object using WSProxy.
+// Parameters:
+// - soapObjectname: The name of the SOAP object from which data will be retrieved.
+// - cols: An array of column names to retrieve from the SOAP object.
+// - filter: A filter to apply when querying the SOAP object (optional).
+function performItemSoapObject(soapObjectname,payload)
+{
+  // Create a new instance of WSProxy to interact with the SOAP object.
+  var api = new Script.Util.WSProxy();
+  api.setClientId({
+    "ID": Platform.Function.AuthenticatedMemberID(),
+    "UserID": Platform.Function.AuthenticatedEmployeeID()
+});
+  var customerKey = payload.Results[0].CustomerKey;
+  var filter = { "CustomerKey": customerKey};
+  var action = ["start", "stop"];
+  var opts = {};
+  var result = api.performItem(soapObjectname, filter, action[0], opts);
+  return result;
+}
+  
+</script>
+                            
