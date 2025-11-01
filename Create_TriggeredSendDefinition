@@ -1,0 +1,47 @@
+<script runat="server">
+Platform.Load("core", "1");
+
+try {
+    var api = new Script.Util.WSProxy();
+    api.setClientId({
+    "ID": Platform.Function.AuthenticatedMemberID(),
+    "UserID": Platform.Function.AuthenticatedEmployeeID()
+    });
+
+    // Configuration variables
+    var definitionName = "Dubai Dreamin";
+    var definitionKey = "Dubai Dreamin";
+    var emailId = 14829; // Replace with your Email ID
+    var sendClassificationCustomerKey = "Default Commercial"; // Example: use your classification key
+
+    // Create the TriggeredSendDefinition object
+    var tsd = {
+        Name: definitionName,
+        CustomerKey: definitionKey,
+        Email: {
+            ID: emailId,
+            Subject: "Demo"
+        },
+        SendClassification: {
+            CustomerKey: sendClassificationCustomerKey
+        },
+        IsMultipart: true,
+        IsMultipartSpecified: true,
+        List: {ID:58},
+        AutoAddSubscribers:true,
+        AutoUpdateSubscribers:true,
+        Client:{ID:Platform.Function.AuthenticatedMemberID()}
+    };
+
+    // Call WSProxy create
+    var result = api.createItem("TriggeredSendDefinition", tsd);
+
+    Write(Stringify(result));
+
+} catch (ex) {
+    // Output any errors
+    Write("Error message: " + ex.message + "<br>");
+    Write("Description: " + ex.description + "<br>");
+    Write("Jint Exception: " + ex.jintException + "<br>");
+}
+</script>
