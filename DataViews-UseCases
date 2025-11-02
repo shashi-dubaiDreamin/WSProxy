@@ -415,7 +415,7 @@ function OpenDataViewProperties() {
                 SimpleOperator: "equals",
                 Value: queries[i].CustomerKey
             });
-            var objectId = request.Results[0].ObjectID;
+            var objectId = request.Results[i].ObjectID;
             var prop ={ "ObjectID": objectId };
             var result = api.performItem("QueryDefinition", prop, "Start", {});
         }
