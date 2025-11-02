@@ -23,7 +23,7 @@ try {
         var queryResult= api.createBatch("QueryDefinition", queries);
 
         if(queryResult.Status==='OK' && queryResult.RequestID){
-            var qd=RunQueries(api,queries);
+            var qd=RunQueries(api,queryResult.Results);
             Write (queryResult.Status); 
         }
         
@@ -409,16 +409,9 @@ function OpenDataViewProperties() {
         var props=[];
 
         for (var i = 0; i < queries.length; i++) {
-            var request = api.retrieve("QueryDefinition", ["ObjectID"], 
-            {
-                Property: "CustomerKey",
-                SimpleOperator: "equals",
-                Value: queries[i].CustomerKey
-            });
-            var objectId = request.Results[i].ObjectID;
-            var prop ={ "ObjectID": objectId };
+            var objectId = rqueries[i].ObjectID;
+            var prop = { "ObjectID" : objectId };
             var result = api.performItem("QueryDefinition", prop, "Start", {});
         }
-        return result;
     }
 </script>
