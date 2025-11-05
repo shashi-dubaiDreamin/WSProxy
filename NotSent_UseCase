@@ -30,7 +30,7 @@ try {
     var filter = null;
 
     // Options
-    var opts = { BatchSize: 50 };
+    var opts = { BatchSize: 2500 };
     var reqProps = { QueryAllAccounts: true };
 
     var allResults = [];
